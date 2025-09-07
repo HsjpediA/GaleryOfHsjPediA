@@ -1,0 +1,984 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Galery of Memory HSJA</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&family=Lobster&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      /* --- [1] Variabel Global & Reset Dasar --- */
+      :root {
+        /* Tema Warna Utama */
+        --color-primary-dark: #0d47a1; /* Biru Tua */
+        --color-primary-light: #42a5f5; /* Biru Muda */
+        --color-background: #e3f2fd; /* Putih Langit */
+        --color-text-light: #ffffff;
+        --color-text-dark: #212121;
+        --color-accent: #ffab40;
+
+        /* Tipografi */
+        --font-family-header: "Lobster", cursive;
+        --font-family-body: "Poppins", sans-serif;
+
+        /* Properti Lain */
+        --shadow-light: 0 4px 8px rgba(0, 0, 0, 0.1);
+        --shadow-strong: 0 8px 16px rgba(0, 0, 0, 0.2);
+        --border-radius: 12px;
+      }
+
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        font-family: var(--font-family-body);
+        color: var(--color-text-dark);
+        line-height: 1.6;
+        transition: background 0.5s ease;
+        /* --- [CUSTOM] Latar Belakang Khusus --- */
+        /* Aktifkan salah satu baris di bawah ini untuk mengubah background */
+        background-image: linear-gradient(
+          135deg,
+          #e0f7fa 0%,
+          #b2ebf2 50%,
+          #80deea 100%
+        ); /* <-- Gradient (Default) */
+        /* background-image: url('https://www.transparenttextures.com/patterns/cubes.png'); */ /* <-- Pola */
+        /* background-image: url('https://images.unsplash.com/photo-1500964757637-c85e8a162699'); background-size: cover; */ /* <-- Gambar */
+      }
+
+      /* --- [2] Header & Kontrol Musik --- */
+      .main-header {
+        text-align: center;
+        padding: 2rem 1rem;
+        background-color: rgba(255, 255, 255, 0.7);
+        backdrop-filter: blur(10px);
+        border-bottom: 2px solid var(--color-primary-light);
+      }
+
+      .main-header h1 {
+        font-family: var(--font-family-header);
+        font-size: clamp(2rem, 10vw, 2.8rem);
+        color: var(--color-primary-dark);
+        margin-bottom: 0.5rem;
+      }
+
+      .main-header p {
+        font-size: clamp(0.9rem, 4vw, 1.1rem);
+        color: var(--color-primary-dark);
+        font-style: italic;
+      }
+
+      .music-controls button {
+        margin-top: 1rem;
+        padding: 0.6rem 1.5rem;
+        font-size: 1rem;
+        border: 2px solid var(--color-primary-dark);
+        background-color: transparent;
+        color: var(--color-primary-dark);
+        border-radius: 30px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+
+      .music-controls button:hover {
+        background-color: var(--color-primary-dark);
+        color: white;
+      }
+
+      /* --- [3] Filter & Search --- */
+      .filter-container {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 1.5rem;
+        padding: 1.5rem;
+        background-color: #fff;
+        margin: 1.5rem auto;
+        max-width: 1200px;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-light);
+      }
+
+      .filter-group {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+      .filter-group label {
+        font-weight: 600;
+      }
+      .filter-group select,
+      .filter-group input {
+        padding: 0.5rem 1rem;
+        border: 2px solid var(--color-primary-light);
+        border-radius: 8px;
+        font-family: var(--font-family-body);
+        background-color: #f7fbff;
+      }
+
+      /* --- [4] Carousel / Slider --- */
+      .carousel-wrapper {
+        position: relative;
+        max-width: 1200px;
+        margin: 0 auto;
+        overflow: hidden;
+        -webkit-user-select: none; /* Safari */
+        -ms-user-select: none; /* IE 10+ */
+        user-select: none; /* Standard syntax */
+      }
+
+      .carousel-track {
+        display: flex;
+        gap: 1.5rem;
+        padding: 1rem;
+        transition: transform 0.6s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+      }
+
+      .gallery-item {
+        flex-shrink: 0;
+        width: calc(33.333% - 1rem);
+        position: relative;
+        border-radius: var(--border-radius);
+        overflow: hidden;
+        box-shadow: var(--shadow-light);
+        cursor: pointer;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        animation: fadeIn 0.5s ease-out forwards;
+        opacity: 0;
+      }
+
+      .gallery-item:hover {
+        transform: translateY(-5px) scale(1.03);
+        box-shadow: var(--shadow-strong);
+      }
+
+      .gallery-item img,
+      .gallery-item video {
+        width: 100%;
+        height: 250px; /* Tinggi tetap agar grid rapi */
+        object-fit: cover; /* Menjaga rasio aspek */
+        display: block;
+      }
+
+      /* Watermark Logo HSJA menggunakan SVG inline */
+      .gallery-item::after {
+        content: "";
+        position: absolute;
+        bottom: 8px;
+        right: 8px;
+        width: 40px;
+        height: 40px;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext x='50' y='65' font-family='Arial, sans-serif' font-size='50' font-weight='bold' fill='%23FFFFFF' text-anchor='middle' opacity='0.8'%3EHSJA%3C/text%3E%3C/svg%3E");
+        background-size: contain;
+        background-repeat: no-repeat;
+        opacity: 0.7;
+        pointer-events: none;
+      }
+
+      .play-icon {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 60px;
+        height: 60px;
+        background-color: rgba(0, 0, 0, 0.5);
+        border-radius: 50%;
+        pointer-events: none;
+        opacity: 0.9;
+        transition: transform 0.3s ease;
+      }
+      .play-icon::after {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 53%;
+        transform: translate(-50%, -50%);
+        width: 0;
+        height: 0;
+        border-top: 15px solid transparent;
+        border-bottom: 15px solid transparent;
+        border-left: 25px solid white;
+      }
+      .gallery-item:hover .play-icon {
+        transform: translate(-50%, -50%) scale(1.2);
+      }
+
+      .carousel-nav {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        background-color: rgba(255, 255, 255, 0.8);
+        border: none;
+        color: var(--color-primary-dark);
+        font-size: 2rem;
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        cursor: pointer;
+        z-index: 10;
+        transition: background-color 0.3s, color 0.3s;
+      }
+      .carousel-nav:hover {
+        background-color: var(--color-primary-dark);
+        color: var(--color-text-light);
+      }
+      .carousel-nav.prev {
+        left: 15px;
+      }
+      .carousel-nav.next {
+        right: 15px;
+      }
+
+      /* --- [5] Tombol Load More --- */
+      .load-more-container {
+        text-align: center;
+        padding: 2rem 0;
+      }
+      #load-more-btn {
+        padding: 0.8rem 2.5rem;
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--color-text-light);
+        background-color: var(--color-primary-dark);
+        border: none;
+        border-radius: 50px;
+        cursor: pointer;
+        transition: background-color 0.3s, transform 0.2s;
+      }
+      #load-more-btn:hover {
+        background-color: var(--color-primary-light);
+        transform: translateY(-3px);
+      }
+      #load-more-btn.hidden {
+        display: none;
+      }
+
+      /* --- [6] Sidebar Detail --- */
+      .sidebar-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.7);
+        z-index: 998;
+        opacity: 0;
+        transition: opacity 0.4s ease;
+        pointer-events: none;
+      }
+      .sidebar-overlay.visible {
+        opacity: 1;
+        pointer-events: auto;
+      }
+
+      .sidebar {
+        position: fixed;
+        top: 0;
+        right: 0;
+        width: 450px;
+        height: 100%;
+        background-color: #fff;
+        z-index: 999;
+        transform: translateX(100%);
+        transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        display: flex;
+        flex-direction: column;
+        box-shadow: -5px 0 15px rgba(0, 0, 0, 0.2);
+      }
+      .sidebar.visible {
+        transform: translateX(0);
+      }
+
+      .sidebar-content {
+        flex-grow: 1;
+        overflow-y: auto;
+      }
+      .sidebar-media {
+        width: 100%;
+        background-color: #eee;
+      }
+      .sidebar-media img,
+      .sidebar-media video {
+        width: 100%;
+        display: block;
+      }
+
+      .sidebar-details {
+        padding: 1.5rem;
+      }
+      #sidebar-title {
+        font-size: 1.8rem;
+        color: var(--color-primary-dark);
+        margin-bottom: 0.5rem;
+      }
+      .sidebar-meta {
+        font-size: 0.9rem;
+        color: #666;
+        margin-bottom: 1rem;
+      }
+      .sidebar-category {
+        display: inline-block;
+        background-color: var(--color-primary-light);
+        color: white;
+        padding: 0.2rem 0.6rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        margin-bottom: 1rem;
+      }
+      .sidebar-description {
+        margin-bottom: 1.5rem;
+      }
+      .sidebar-quote {
+        font-style: italic;
+        padding-left: 1rem;
+        border-left: 4px solid var(--color-primary-light);
+        color: #555;
+      }
+
+      .sidebar-close {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        font-size: 2rem;
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: #888;
+      }
+      .sidebar-close:hover {
+        color: var(--color-primary-dark);
+      }
+
+      .sidebar-nav {
+        display: flex;
+        justify-content: space-between;
+        padding: 1rem;
+        border-top: 1px solid #eee;
+      }
+      .sidebar-nav button {
+        padding: 0.6rem 1.2rem;
+        background: var(--color-primary-dark);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+      }
+      .sidebar-nav button:hover {
+        background: var(--color-primary-light);
+      }
+      .sidebar-nav button:disabled {
+        background: #ccc;
+        cursor: not-allowed;
+      }
+
+      /* --- [7] Animasi & Responsivitas --- */
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: scale(0.95);
+        }
+        to {
+          opacity: 1;
+          transform: scale(1);
+        }
+      }
+
+      @media (max-width: 1024px) {
+        .gallery-item {
+          width: calc(50% - 0.75rem);
+        }
+        .sidebar {
+          width: 380px;
+        }
+      }
+      @media (max-width: 768px) {
+        .filter-container {
+          flex-direction: column;
+          gap: 1rem;
+        }
+        .carousel-track {
+          gap: 1rem;
+        }
+        .gallery-item {
+          width: 100%;
+        }
+        .sidebar {
+          width: 100%;
+          max-width: 320px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="main-header">
+      <h1>Galery of Memory HSJA</h1>
+      <p>"Setiap momen adalah cerita yang tak ternilai."</p>
+      <div id="music-controls" class="music-controls"></div>
+    </header>
+
+    <main>
+      <div class="filter-container" role="toolbar" aria-label="Filter Galeri">
+        <div class="filter-group">
+          <label for="filter-year">Tahun:</label>
+          <select id="filter-year" aria-label="Filter berdasarkan tahun">
+            <option value="all">Semua</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label for="filter-month">Bulan:</label>
+          <select id="filter-month" aria-label="Filter berdasarkan bulan">
+            <option value="all">Semua</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label for="filter-event">Acara:</label>
+          <select id="filter-event" aria-label="Filter berdasarkan acara">
+            <option value="all">Semua</option>
+          </select>
+        </div>
+        <div class="filter-group search-group">
+          <input
+            type="search"
+            id="search-bar"
+            placeholder="Cari berdasarkan tema..."
+            aria-label="Cari tema acara"
+          />
+        </div>
+      </div>
+
+      <div class="carousel-wrapper">
+        <div class="carousel-track" id="carousel-track"></div>
+        <button
+          class="carousel-nav prev"
+          id="prev-btn"
+          aria-label="Slide Sebelumnya"
+        >
+          &#10094;
+        </button>
+        <button
+          class="carousel-nav next"
+          id="next-btn"
+          aria-label="Slide Berikutnya"
+        >
+          &#10095;
+        </button>
+      </div>
+
+      <div class="load-more-container">
+        <button id="load-more-btn">Lihat Lebih Banyak</button>
+      </div>
+    </main>
+
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+    <aside
+      class="sidebar"
+      id="sidebar"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="sidebar-title"
+    >
+      <button
+        class="sidebar-close"
+        id="sidebar-close-btn"
+        aria-label="Tutup Detail"
+      >
+        &times;
+      </button>
+      <div class="sidebar-content">
+        <div class="sidebar-media" id="sidebar-media"></div>
+        <div class="sidebar-details">
+          <h2 id="sidebar-title"></h2>
+          <p class="sidebar-meta">
+            <span id="sidebar-date"></span> &bull;
+            <span id="sidebar-location"></span>
+          </p>
+          <p class="sidebar-category" id="sidebar-category"></p>
+          <p class="sidebar-description" id="sidebar-description"></p>
+          <blockquote class="sidebar-quote" id="sidebar-quote"></blockquote>
+        </div>
+      </div>
+      <div class="sidebar-nav">
+        <button id="sidebar-prev-btn" aria-label="Item Sebelumnya">
+          Sebelumnya
+        </button>
+        <button id="sidebar-next-btn" aria-label="Item Berikutnya">
+          Berikutnya
+        </button>
+      </div>
+    </aside>
+
+    <audio id="background-music" loop src="Photograph.mp3"></audio>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        // --- [1] DATABASE & PENGATURAN AWAL ---
+
+        // [CUSTOM] Di sinilah Anda memasukkan data foto dan video.
+        // Ganti src dengan path file Anda. Gunakan placeholder jika belum ada.
+        const galleryData = [
+          {
+            id: "001",
+            type: "image",
+            src: "https://via.placeholder.com/600x400.png/0D47A1/FFFFFF?text=HSJA+Event+1",
+            title: "Pelantikan Anggota Baru",
+            date: "2024-08-17",
+            location: "Aula Serbaguna",
+            event: "Orientasi 2024",
+            description:
+              "Momen khidmat saat pelantikan anggota baru angkatan 2024. Semangat baru untuk HSJA!",
+            quote: "Awal dari sebuah perjalanan besar.",
+            tags: ["pelantikan", "orientasi", "anggota baru"],
+          },
+          {
+            id: "002",
+            type: "video",
+            src: "https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/360/Big_Buck_Bunny_360_10s_1MB.mp4",
+            thumbnail:
+              "https://via.placeholder.com/600x400.png/42A5F5/FFFFFF?text=Bakti+Sosial",
+            title: "Bakti Sosial di Desa Ceria",
+            date: "2024-09-22",
+            location: "Desa Ceria",
+            event: "Bakti Sosial",
+            description:
+              "Kegiatan bakti sosial yang diisi dengan pembagian sembako dan kerja bakti bersama warga.",
+            quote: "Berbagi adalah cara terbaik untuk bersyukur.",
+            tags: ["baksos", "kemanusiaan", "desa"],
+          },
+          {
+            id: "003",
+            type: "image",
+            src: "https://via.placeholder.com/600x400.png/0D47A1/FFFFFF?text=Rapat+Akbar",
+            title: "Rapat Akbar Tahunan",
+            date: "2023-12-15",
+            location: "Ruang Rapat Utama",
+            event: "Rapat Akbar",
+            description:
+              "Pembahasan program kerja untuk tahun berikutnya. Penuh dengan ide dan gagasan cemerlang.",
+            quote: "Visi besar dimulai dari diskusi kecil.",
+            tags: ["rapat", "program kerja", "tahunan"],
+          },
+          {
+            id: "004",
+            type: "image",
+            src: "https://via.placeholder.com/600x400.png/42A5F5/FFFFFF?text=HSJA+Outbound",
+            title: "Outbound & Team Building",
+            date: "2023-11-05",
+            location: "Taman Hutan Raya",
+            event: "Outbound",
+            description:
+              "Mempererat kekompakan tim melalui berbagai permainan seru di alam terbuka.",
+            quote: "Bersama, kita lebih kuat.",
+            tags: ["outbound", "team building", "alam"],
+          },
+          // Tambahkan 10-20 item lagi di sini untuk demo 'Load More'
+          {
+            id: "005",
+            type: "image",
+            src: "https://via.placeholder.com/600x400.png/0D47A1/FFFFFF?text=Seminar+2024",
+            title: "Seminar Nasional",
+            date: "2024-05-20",
+            location: "Gedung Pusat",
+            event: "Seminar",
+            description: "Deskripsi seminar...",
+            quote: "Ilmu adalah lentera.",
+            tags: ["seminar", "edukasi"],
+          },
+          {
+            id: "006",
+            type: "image",
+            src: "https://via.placeholder.com/600x400.png/42A5F5/FFFFFF?text=Lomba+17an",
+            title: "Lomba Kemerdekaan",
+            date: "2024-08-17",
+            location: "Lapangan Utama",
+            event: "HUT RI",
+            description: "Deskripsi lomba...",
+            quote: "Semangat 45!",
+            tags: ["lomba", "kemerdekaan", "agustus"],
+          },
+          {
+            id: "007",
+            type: "image",
+            src: "https://via.placeholder.com/600x400.png/0D47A1/FFFFFF?text=Buka+Puasa",
+            title: "Buka Puasa Bersama",
+            date: "2024-03-25",
+            location: "Masjid Kampus",
+            event: "Ramadhan",
+            description: "Deskripsi bukber...",
+            quote: "Indahnya kebersamaan.",
+            tags: ["bukber", "ramadhan", "puasa"],
+          },
+          {
+            id: "008",
+            type: "image",
+            src: "https://via.placeholder.com/600x400.png/42A5F5/FFFFFF?text=Studi+Banding",
+            title: "Studi Banding",
+            date: "2023-10-10",
+            location: "Universitas Sahabat",
+            event: "Studi Banding",
+            description: "Deskripsi studi banding...",
+            quote: "Belajar tanpa batas.",
+            tags: ["kunjungan", "studi"],
+          },
+          {
+            id: "009",
+            type: "image",
+            src: "https://via.placeholder.com/600x400.png/0D47A1/FFFFFF?text=Dies+Natalis",
+            title: "Perayaan Dies Natalis",
+            date: "2024-01-30",
+            location: "Auditorium",
+            event: "Dies Natalis",
+            description: "Deskripsi Dies Natalis...",
+            quote: "Selamat ulang tahun!",
+            tags: ["ultah", "perayaan"],
+          },
+          {
+            id: "010",
+            type: "image",
+            src: "https://via.placeholder.com/600x400.png/42A5F5/FFFFFF?text=Malam+Akrab",
+            title: "Malam Keakraban",
+            date: "2024-02-14",
+            location: "Villa Puncak",
+            event: "Makrab",
+            description: "Deskripsi makrab...",
+            quote: "Satu rasa, satu jiwa.",
+            tags: ["makrab", "gathering"],
+          },
+          {
+            id: "011",
+            type: "image",
+            src: "https://via.placeholder.com/600x400.png/0D47A1/FFFFFF?text=Pentas+Seni",
+            title: "Pentas Seni Tahunan",
+            date: "2023-11-28",
+            location: "Panggung Terbuka",
+            event: "Pentas Seni",
+            description: "Deskripsi pensi...",
+            quote: "Ekspresikan dirimu!",
+            tags: ["seni", "musik", "pensi"],
+          },
+          {
+            id: "012",
+            type: "video",
+            src: "https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/360/Big_Buck_Bunny_360_10s_1MB.mp4",
+            thumbnail:
+              "https://via.placeholder.com/600x400.png/42A5F5/FFFFFF?text=Video+Dokumenter",
+            title: "Dokumenter Singkat HSJA",
+            date: "2024-06-15",
+            location: "Kampus",
+            event: "Dokumenter",
+            description: "Kompilasi video kegiatan HSJA.",
+            quote: "Sebuah rekam jejak.",
+            tags: ["video", "dokumenter", "kompilasi"],
+          },
+        ];
+
+        const ITEMS_PER_LOAD = 8;
+        let loadedItemsCount = 0;
+        let filteredData = [...galleryData];
+        let currentCarouselIndex = 0;
+        let currentSidebarIndex = -1;
+
+        // --- [2] ELEMEN DOM ---
+        const track = document.getElementById("carousel-track");
+        const loadMoreBtn = document.getElementById("load-more-btn");
+        const sidebar = document.getElementById("sidebar");
+        const sidebarOverlay = document.getElementById("sidebar-overlay");
+        const audio = document.getElementById("background-music");
+
+        // --- [3] FUNGSI UTAMA ---
+
+        /** Menampilkan item ke galeri */
+        function renderItems(itemsToRender, append = false) {
+          if (!append) track.innerHTML = "";
+          const fragment = document.createDocumentFragment();
+
+          itemsToRender.forEach((item) => {
+            const itemEl = document.createElement("div");
+            itemEl.className = "gallery-item";
+            itemEl.dataset.id = item.id; // Gunakan ID untuk mencari data asli
+
+            let mediaEl = "";
+            if (item.type === "video") {
+              mediaEl = `<video poster="${item.thumbnail}" preload="metadata"><source src="${item.src}" type="video/mp4"></video><div class="play-icon"></div>`;
+            } else {
+              mediaEl = `<img src="${item.src}" alt="${item.title}" loading="lazy">`;
+            }
+            itemEl.innerHTML = mediaEl;
+            fragment.appendChild(itemEl);
+          });
+          track.appendChild(fragment);
+          updateLoadMoreButton();
+        }
+
+        /** Memuat batch item berikutnya */
+        function loadMoreItems() {
+          const currentLoaded = track.children.length;
+          const nextItems = filteredData.slice(
+            currentLoaded,
+            currentLoaded + ITEMS_PER_LOAD
+          );
+          renderItems(nextItems, true);
+        }
+
+        /** Memperbarui status tombol 'Load More' */
+        function updateLoadMoreButton() {
+          if (track.children.length >= filteredData.length) {
+            loadMoreBtn.classList.add("hidden");
+          } else {
+            loadMoreBtn.classList.remove("hidden");
+          }
+        }
+
+        /** Menerapkan filter dan search */
+        function applyFilters() {
+          const year = document.getElementById("filter-year").value;
+          const month = document.getElementById("filter-month").value;
+          const event = document.getElementById("filter-event").value;
+          const searchTerm = document
+            .getElementById("search-bar")
+            .value.toLowerCase();
+
+          filteredData = galleryData.filter((item) => {
+            const itemDate = new Date(item.date);
+            const yearMatch = year === "all" || itemDate.getFullYear() == year;
+            const monthMatch =
+              month === "all" || itemDate.getMonth() + 1 == month;
+            const eventMatch = event === "all" || item.event === event;
+            const searchMatch =
+              !searchTerm ||
+              item.tags.some((tag) => tag.toLowerCase().includes(searchTerm)) ||
+              item.title.toLowerCase().includes(searchTerm);
+            return yearMatch && monthMatch && eventMatch && searchMatch;
+          });
+
+          currentCarouselIndex = 0;
+          renderItems(filteredData.slice(0, ITEMS_PER_LOAD), false);
+          updateCarouselPosition();
+        }
+
+        /** Mengisi opsi filter secara dinamis */
+        function populateFilters() {
+          const years = [
+            ...new Set(
+              galleryData.map((item) => new Date(item.date).getFullYear())
+            ),
+          ].sort((a, b) => b - a);
+          const events = [
+            ...new Set(galleryData.map((item) => item.event)),
+          ].sort();
+          const months = [
+            "Januari",
+            "Februari",
+            "Maret",
+            "April",
+            "Mei",
+            "Juni",
+            "Juli",
+            "Agustus",
+            "September",
+            "Oktober",
+            "November",
+            "Desember",
+          ];
+
+          const yearFilter = document.getElementById("filter-year");
+          const monthFilter = document.getElementById("filter-month");
+          const eventFilter = document.getElementById("filter-event");
+
+          years.forEach((year) => yearFilter.add(new Option(year, year)));
+          months.forEach((month, i) =>
+            monthFilter.add(new Option(month, i + 1))
+          );
+          events.forEach((event) => eventFilter.add(new Option(event, event)));
+        }
+
+        // --- [4] FUNGSI SIDEBAR ---
+
+        /** Membuka dan mengisi sidebar */
+        function openSidebar(itemId) {
+          const itemIndex = filteredData.findIndex(
+            (item) => item.id === itemId
+          );
+          if (itemIndex === -1) return;
+          currentSidebarIndex = itemIndex;
+
+          const itemData = filteredData[itemIndex];
+
+          // Isi konten
+          document.getElementById("sidebar-title").textContent = itemData.title;
+          document.getElementById("sidebar-date").textContent = new Date(
+            itemData.date
+          ).toLocaleDateString("id-ID", {
+            day: "numeric",
+            month: "long",
+            year: "numeric",
+          });
+          document.getElementById("sidebar-location").textContent =
+            itemData.location;
+          document.getElementById("sidebar-category").textContent = `${
+            itemData.event
+          } - ${new Date(itemData.date).getFullYear()}`;
+          document.getElementById("sidebar-description").textContent =
+            itemData.description;
+          document.getElementById(
+            "sidebar-quote"
+          ).textContent = `"${itemData.quote}"`;
+
+          const mediaContainer = document.getElementById("sidebar-media");
+          if (itemData.type === "video") {
+            mediaContainer.innerHTML = `<video src="${itemData.src}" controls autoplay></video>`;
+          } else {
+            mediaContainer.innerHTML = `<img src="${itemData.src}" alt="${itemData.title}">`;
+          }
+
+          // Atur tombol navigasi
+          document.getElementById("sidebar-prev-btn").disabled =
+            currentSidebarIndex === 0;
+          document.getElementById("sidebar-next-btn").disabled =
+            currentSidebarIndex === filteredData.length - 1;
+
+          sidebar.classList.add("visible");
+          sidebarOverlay.classList.add("visible");
+          document.body.style.overflow = "hidden";
+        }
+
+        /** Menutup sidebar */
+        function closeSidebar() {
+          sidebar.classList.remove("visible");
+          sidebarOverlay.classList.remove("visible");
+          document.body.style.overflow = "";
+          // Hentikan video saat sidebar ditutup
+          const video = sidebar.querySelector("video");
+          if (video) video.pause();
+        }
+
+        /** Navigasi di dalam sidebar */
+        function navigateSidebar(direction) {
+          const newIndex = currentSidebarIndex + direction;
+          if (newIndex >= 0 && newIndex < filteredData.length) {
+            openSidebar(filteredData[newIndex].id);
+          }
+        }
+
+        // --- [5] FUNGSI CAROUSEL & SLIDER ---
+
+        function getItemsPerView() {
+          if (window.innerWidth <= 768) return 1;
+          if (window.innerWidth <= 1024) return 2;
+          return 3;
+        }
+
+        function updateCarouselPosition() {
+          const itemsPerView = getItemsPerView();
+          const maxIndex = Math.max(0, track.children.length - itemsPerView);
+          currentCarouselIndex = Math.max(
+            0,
+            Math.min(currentCarouselIndex, maxIndex)
+          );
+
+          const itemWidth =
+            track.querySelector(".gallery-item")?.clientWidth || 0;
+          const gap = parseFloat(getComputedStyle(track).gap) || 0;
+          const offset = -currentCarouselIndex * (itemWidth + gap);
+          track.style.transform = `translateX(${offset}px)`;
+        }
+
+        function moveCarousel(direction) {
+          currentCarouselIndex += direction * getItemsPerView();
+          updateCarouselPosition();
+        }
+
+        // --- [6] FUNGSI MUSIK ---
+
+        function setupMusic() {
+          const playPromise = audio.play();
+          if (playPromise !== undefined) {
+            playPromise.catch(() => {
+              const musicControls = document.getElementById("music-controls");
+              const playBtn = document.createElement("button");
+              playBtn.textContent = "Putar Kenangan 🎵";
+              playBtn.onclick = () => {
+                audio.play();
+                playBtn.style.display = "none";
+              };
+              musicControls.appendChild(playBtn);
+            });
+          }
+        }
+
+        // --- [7] EVENT LISTENERS ---
+
+        loadMoreBtn.addEventListener("click", loadMoreItems);
+
+        document
+          .getElementById("prev-btn")
+          .addEventListener("click", () => moveCarousel(-1));
+        document
+          .getElementById("next-btn")
+          .addEventListener("click", () => moveCarousel(1));
+
+        track.addEventListener("click", (e) => {
+          const item = e.target.closest(".gallery-item");
+          if (item) openSidebar(item.dataset.id);
+        });
+
+        sidebarOverlay.addEventListener("click", closeSidebar);
+        document
+          .getElementById("sidebar-close-btn")
+          .addEventListener("click", closeSidebar);
+        document
+          .getElementById("sidebar-prev-btn")
+          .addEventListener("click", () => navigateSidebar(-1));
+        document
+          .getElementById("sidebar-next-btn")
+          .addEventListener("click", () => navigateSidebar(1));
+
+        document
+          .getElementById("filter-year")
+          .addEventListener("change", applyFilters);
+        document
+          .getElementById("filter-month")
+          .addEventListener("change", applyFilters);
+        document
+          .getElementById("filter-event")
+          .addEventListener("change", applyFilters);
+        document
+          .getElementById("search-bar")
+          .addEventListener("input", applyFilters);
+
+        document.addEventListener("keydown", (e) => {
+          if (e.key === "Escape" && sidebar.classList.contains("visible"))
+            closeSidebar();
+          if (sidebar.classList.contains("visible")) {
+            if (e.key === "ArrowLeft") navigateSidebar(-1);
+            if (e.key === "ArrowRight") navigateSidebar(1);
+          }
+        });
+
+        window.addEventListener("resize", updateCarouselPosition);
+
+        // --- [8] INISIALISASI ---
+
+        populateFilters();
+        renderItems(filteredData.slice(0, ITEMS_PER_LOAD));
+        setupMusic();
+      });
+    </script>
+  </body>
+</html>
